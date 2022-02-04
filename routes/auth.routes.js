@@ -11,8 +11,11 @@ router.get("/signup", (req, res) => {
 });
 
 router.post("/signup", (req, res, next) => {
-  /* console.log("The form data: ", req.body) */ const { username, email, password } =
-    req.body;
+  /* console.log("The form data: ", req.body) */ const {
+    username,
+    email,
+    password,
+  } = req.body;
   if (!username || !email || !password) {
     res.render("auth/signup", {
       errorMessage:
@@ -87,6 +90,14 @@ router.post("/login", (req, res, next) => {
       }
     })
     .catch((error) => next(error));
+});
+
+// The Logout route
+router.post("/logout", (req, res, next) => {
+  req.session.destroy((error) => {
+    if (error) next(error);
+    res.redirect("/");
+  });
 });
 
 // The user profile
