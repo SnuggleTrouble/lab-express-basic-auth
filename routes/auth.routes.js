@@ -13,22 +13,20 @@ router.get("/signup", (req, res) => {
 router.post("/signup", (req, res, next) => {
   /* console.log("The form data: ", req.body) */ const { username, password } =
     req.body;
-  if (!username || !password) {
+  if (!username || !email || !password) {
     res.render("auth/signup", {
       errorMessage:
-        "All fields are mandatory. Please provide your username and password.",
+        "All fields are mandatory. Please provide your username, email and password.",
     });
     return;
   }
   // make sure passwords are strong:
   const regex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
   if (!regex.test(password)) {
-    res
-      .status(500)
-      .render("auth/signup", {
-        errorMessage:
-          "Password needs to have at least 6 chars and must contain at least one number, one lowercase and one uppercase letter.",
-      });
+    res.status(500).render("auth/signup", {
+      errorMessage:
+        "Password needs to have at least 6 chars and must contain at least one number, one lowercase and one uppercase letter.",
+    });
     return;
   }
 
@@ -62,6 +60,30 @@ router.post("/signup", (req, res, next) => {
 // The Login route
 router.get("/login", (req, res) => {
   res.render("auth/login");
+});
+
+router.post("/login", (req, res, next) => {
+  const { email, password } = req.body;
+  if (email === "" || password === "") {
+    res.render("auth/login", {
+      errorMessage: "Please enter both, email and password to login.",
+    });
+    return;
+  }
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        res.render("auth/login", {
+          errorMessage: "Email is not registered. Try with a different email.",
+        });
+        return;
+      } else if (bcryptjs.compareSync(password, user.passwordHash)) {
+        res.render("users/user-profile", { user });
+      } else {
+        res.render("auth/login", { errorMessage: "Incorrect password." });
+      }
+    })
+    .catch((error) => next(error));
 });
 
 // The user profile
